@@ -1,7 +1,13 @@
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 import java.util.Scanner;
+import java.util.StringJoiner;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class game {
 
@@ -111,10 +117,20 @@ public class game {
         return "N".equalsIgnoreCase(input);
     }
 
+    public static boolean isBetOver(List<Integer> rolls, tuple lastBet) {
+        int countTarget = (int) lastBet.getFirst();
+        int value = (int) lastBet.getSecond();
+
+        int countValues = Collections.frequency(rolls, value);
+        System.out.println(countValues < countTarget);
+        return countValues < countTarget;
+    }
+
 
     public static player round(player player1, player player2) {
         Scanner scanner = new Scanner(System.in); 
         
+        boolean firstCall = true;
         boolean noCall = true;
         player currentPlayer = player1;
         tuple lastBet = new tuple<>(1, 1);
@@ -127,7 +143,13 @@ public class game {
             List<tuple> choices = createChoices(player1.getLives() + player2.getLives(), lastBet);
             // limit choices by changing createChoices using last bet here
 
-            noCall = getCall(getUserInputString(scanner, "Will you call? Y/N "));
+            if (firstCall) {
+                noCall = getCall("N");
+                firstCall = false;
+            }
+            else{
+                noCall = getCall(getUserInputString(scanner, "Will you call? Y/N "));
+            }
 
             if (noCall) {
                 tuple bet = getUserInputChoice(scanner, "Choose a bet", choices);
@@ -138,12 +160,47 @@ public class game {
             }
         }
 
-        // call stuff here
-
-        return player1;
+        List<Integer> rolls = player1.getDie();
+        rolls.addAll(player2.getDie());
+        System.out.println(rolls);
+        if (isBetOver(rolls, lastBet)) {
+            return swapPlayer(player1, player2, currentPlayer);
+        }
+        else {
+            return currentPlayer;
+        }
     }
 
+    public static String listToString(List<Integer> list) {
+        List<Integer> integerList = new ArrayList<>();
+        integerList.add(1);
+        integerList.add(2);
+        integerList.add(3);
+        integerList.add(4);
+
+        // Using StringJoiner
+        StringJoiner joiner = new StringJoiner(", ", "[", "]");
+        for (Integer number : integerList) {
+            joiner.add(number.toString());
+        }
+
+        return joiner.toString();
+    }
     public static void main(String[] args) {
+
+        /* JFrame frame = new JFrame("Perudo");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(300, 200);
+
+        JLabel label = new JLabel("Hello, players!");
+
+        JPanel panel = new JPanel();
+        panel.setLayout(new FlowLayout());
+        panel.add(label);
+        frame.getContentPane().add(panel);
+
+        // Set the frame to be visible
+        frame.setVisible(true); */
 
         String name1 = "Tom";
         String name2 = "Leo";
@@ -160,6 +217,10 @@ public class game {
             System.out.println();
             System.out.println(player1.getName() + " has:");
             System.out.println(player1.getDie());
+
+            /* String dieAsString = listToString(player1.getDie());
+            JLabel player1JRolls = new JLabel(dieAsString);
+            panel.add(player1JRolls); */
 
             System.out.println(player2.getName() + " has:");
             System.out.println(player2.getDie());
